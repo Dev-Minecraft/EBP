@@ -1,0 +1,7 @@
+name: EffortlessBuildingPlugin
+version: 1.0
+main: com.duongdev.effortlessbuilding.EffortlessBuilding
+commands:
+  eb:
+    description: Main command for Effortless Building
+    usage: /eb <mirror|array>
