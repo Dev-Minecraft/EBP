@@ -1,39 +1,52 @@
-name: Build and Release Plugin
+name: Boringgggg
 
 on:
-  push:
-    branches: [ "main", "master" ]
   workflow_dispatch:
+  push:
+    branches:
+      - "**"
 
 jobs:
-  build:
+  compile:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
     steps:
-      - name: Checkout Repository
+      - name: Clone repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Install Java 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
+          distribution: temurin
+          java-version: 21
 
-      - name: Build with Maven
-        run: mvn clean package
+      - name: Install Maven manually
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y maven
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - name: Cache Maven packages
+        uses: actions/cache@v4
         with:
-          tag_name: latest
-          name: EBP Build
-          body: |
-            Tự động build bản mới nhất.
-          files: target/*.jar
-          draft: false
-          prerelease: false
-          make_latest: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Build jar
+        run: |
+          mvn clean package -DskipTests
+
+      - name: Show generated files
+        run: |
+          ls -R target
+
+      - name: Upload jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-build-output
+          path: |
+            target/*.jar
+            target/*.war
+            target/*.zip
+          if-no-files-found: warn
